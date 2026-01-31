@@ -1,2 +1,7 @@
+# Old shell script build artifacts
 /build/
 /src/
+
+# Zig build artifacts
+.zig-cache/
+zig-out/

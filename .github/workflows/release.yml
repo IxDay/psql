@@ -11,37 +11,46 @@ jobs:
   build:
     name: "${{ matrix.target }}"
     strategy:
-      max-parallel: 4
+      max-parallel: 6
       fail-fast: false
       matrix:
         include:
-          - { target: x86_64-linux-musl, os: macos-latest }
-          - { target: aarch64-linux-musl, os: macos-latest }
+          # Linux musl (fully static)
+          - { target: x86_64-linux-musl, os: ubuntu-latest }
+          - { target: aarch64-linux-musl, os: ubuntu-latest }
+          # Linux glibc
+          - { target: x86_64-linux-gnu, os: ubuntu-latest }
+          - { target: aarch64-linux-gnu, os: ubuntu-latest }
+          # macOS
           - { target: x86_64-macos, os: macos-15-intel }
           - { target: aarch64-macos, os: macos-latest }
     permissions:
       contents: write
     runs-on: "${{ matrix.os }}"
-    env:
-      TARGET: ${{ matrix.target }}
-      PG_VERSION: REL_16_1
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: brew install zig automake autoconf libtool
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
 
       - name: Build psql
-        run: ./build.sh
+        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSmall
+
+      - name: Create archive
+        run: |
+          cd zig-out/bin
+          tar -czvf ../../psql-${{ matrix.target }}.tar.gz psql
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: psql-${{ matrix.target }}
-          path: build/${{ matrix.target }}/psql-*.tar.gz
+          path: psql-${{ matrix.target }}.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ contains(github.ref_name, '-rc') }}
-          files: build/${{ matrix.target }}/psql-*.tar.gz
+          files: psql-${{ matrix.target }}.tar.gz
