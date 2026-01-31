@@ -165,8 +165,8 @@
 /* Memory settings */
 #define MEMSET_LOOP_LIMIT 1024
 
-/* Byte order - assume little endian for x86_64 */
-#define WORDS_BIGENDIAN 0
+/* Byte order - little endian (do NOT define WORDS_BIGENDIAN for little endian) */
+/* #undef WORDS_BIGENDIAN */
 
 /* Maximum identifier length */
 #define NAMEDATALEN 64

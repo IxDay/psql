@@ -1,0 +1,20 @@
+.{
+    .name = .ncurses,
+    .version = "6.4.0",
+    .fingerprint = 0xbfb0fbf76feac679,
+    .minimum_zig_version = "0.15.0",
+
+    .dependencies = .{
+        .ncurses = .{
+            .url = "https://invisible-mirror.net/archives/ncurses/ncurses-6.4.tar.gz",
+            .hash = "N-V-__8AAHWSEwGDuK7Qx8Q-Mx6pjeYBBX9g8I6uJ9r5DZ9L",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "config",
+        "src",
+    },
+}

@@ -8,6 +8,9 @@
             .url = "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
             .hash = "1220c1854d7b4c2b5cbdd8ce6593c37e4bf1ac4032664735e1537c3848becb3b5834",
         },
+        .ncurses = .{
+            .path = "ncurses",
+        },
         .readline = .{
             .url = "https://github.com/jdmichaud/readline/archive/ff8f9e7643e36f81fb3c2dd5a7c5b09339280c3c.tar.gz",
             .hash = "readline-0.0.0-atebP3TKAADoQAp3WoEoqR_7qzOioL-BWmXOB6RbeFH0",
@@ -23,9 +26,7 @@
     .paths = .{
         "build.zig",
         "build.zig.zon",
-        "ncurses_sources.zig",
-        "ncurses_config",
-        "ncurses_src",
+        "ncurses",
         "openssl",
         "pg_config",
     },

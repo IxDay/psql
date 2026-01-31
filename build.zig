@@ -1,5 +1,4 @@
 const std = @import("std");
-const ncurses_sources = @import("ncurses_sources.zig");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -70,41 +69,13 @@ fn buildNcurses(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
 ) *std.Build.Step.Compile {
-    const ncurses_mod = b.createModule(.{
+    const ncurses_dep = b.dependency("ncurses", .{
         .target = target,
         .optimize = optimize,
-        .link_libc = true,
     });
 
-    // Add our pre-generated config headers
-    ncurses_mod.addIncludePath(b.path("ncurses_config"));
-    ncurses_mod.addIncludePath(b.path("ncurses_config/ncurses_priv"));
-
-    // Add ncurses source include paths (use local pre-generated sources)
-    ncurses_mod.addIncludePath(b.path("ncurses_src/ncurses"));
-
-    // Add source files from local pre-generated sources
-    ncurses_mod.addCSourceFiles(.{
-        .root = b.path("ncurses_src"),
-        .files = &ncurses_sources.source_files,
-        .flags = &.{
-            "-DNDEBUG",
-            "-DHAVE_CONFIG_H",
-        },
-    });
-
-    const ncurses = b.addLibrary(.{
-        .name = "ncurses",
-        .root_module = ncurses_mod,
-    });
-
-    // Install public headers
-    ncurses.installHeader(b.path("ncurses_config/curses.h"), "curses.h");
-    ncurses.installHeader(b.path("ncurses_config/ncurses.h"), "ncurses.h");
-    ncurses.installHeader(b.path("ncurses_config/term.h"), "term.h");
-    ncurses.installHeadersDirectory(b.path("ncurses_config/ncurses"), "ncurses", .{});
-
-    return ncurses;
+    // The ncurses package exports a single "ncurses" artifact
+    return ncurses_dep.artifact("ncurses");
 }
 
 fn buildReadline(
@@ -122,9 +93,12 @@ fn buildReadline(
     // Get the readline library artifact
     const lib = readline_dep.artifact("lib");
 
-    // Link ncurses to readline and add ncurses headers
+    // Link ncurses to readline and add ncurses headers explicitly
+    // (linkLibrary alone doesn't propagate headers for cross-compilation)
     lib.root_module.linkLibrary(ncurses);
-    lib.root_module.addIncludePath(b.path("ncurses_config"));
+
+    const ncurses_dep = b.dependency("ncurses", .{});
+    lib.root_module.addIncludePath(ncurses_dep.path("config"));
 
     return lib;
 }

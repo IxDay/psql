@@ -1,4 +1,47 @@
-pub const source_files = [_][]const u8{
+const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const mod = b.createModule(.{
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+
+    // Add our pre-generated config headers
+    mod.addIncludePath(b.path("config"));
+    mod.addIncludePath(b.path("config/ncurses_priv"));
+
+    // Add ncurses source include paths (use local pre-generated sources)
+    mod.addIncludePath(b.path("src/ncurses"));
+
+    // Add source files from local pre-generated sources
+    mod.addCSourceFiles(.{
+        .root = b.path("src"),
+        .files = &source_files,
+        .flags = &.{
+            "-DNDEBUG",
+            "-DHAVE_CONFIG_H",
+        },
+    });
+
+    const lib = b.addLibrary(.{
+        .name = "ncurses",
+        .root_module = mod,
+    });
+
+    // Install public headers
+    lib.installHeader(b.path("config/curses.h"), "curses.h");
+    lib.installHeader(b.path("config/ncurses.h"), "ncurses.h");
+    lib.installHeader(b.path("config/term.h"), "term.h");
+    lib.installHeadersDirectory(b.path("config/ncurses"), "ncurses", .{});
+
+    b.installArtifact(lib);
+}
+
+const source_files = [_][]const u8{
     "form/fld_arg.c",
     "form/fld_attr.c",
     "form/fld_current.c",
@@ -232,20 +275,4 @@ pub const source_files = [_][]const u8{
     "panel/p_update.c",
     "panel/p_user.c",
     "panel/p_win.c",
-};
-
-pub const header_files = [_][]const u8{
-    "curses.h",
-    "ncurses/curses.h",
-    "ncurses/eti.h",
-    "ncurses/form.h",
-    "ncurses.h",
-    "ncurses/menu.h",
-    "ncurses/ncurses_dll.h",
-    "ncurses/ncurses.h",
-    "ncurses/panel.h",
-    "ncurses/termcap.h",
-    "ncurses/term.h",
-    "ncurses/unctrl.h",
-    "term.h",
 };
