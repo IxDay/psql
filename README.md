@@ -2,71 +2,84 @@
 
 Pre-built statically linked PostgreSQL client (`psql`) binaries for multiple platforms.
 
-## Downloads
+## Why?
+
+The PostgreSQL client (`psql`) is essential for database work, but installing it typically requires pulling in the entire PostgreSQL package or dealing with system dependencies. This project provides standalone static binaries that:
+
+- Work without any dependencies (fully static on Linux)
+- Can be managed with [mise](https://mise.jdx.dev/) alongside your other dev tools
+- Are easy to install in CI/CD pipelines and containers
+
+## Installation with mise
+
+The easiest way to install is via [mise](https://mise.jdx.dev/):
+
+```bash
+mise install "github:IxDay/psql@16.1.0"
+```
+
+Then use it directly:
+
+```bash
+mise exec github:IxDay/psql -- psql --version
+```
+
+Or add to your project's `.mise.toml`:
+
+```toml
+[tools]
+"github:IxDay/psql" = "16.1.0"
+```
+
+## Manual Download
 
 Check the [Releases](../../releases) page for pre-built binaries:
 
+- Linux x86_64 (glibc)
 - Linux x86_64 (musl, fully static)
+- Linux aarch64 (glibc)
 - Linux aarch64 (musl, fully static)
 - macOS x86_64
 - macOS aarch64
 
-## Building
+## Building from Source
 
-The build uses [zig](https://ziglang.org/) as a cross-compiler to produce static binaries.
+The build uses [Zig](https://ziglang.org/) as a cross-compiler to produce static binaries.
 
 ### Requirements
 
-- zig
-- curl
+- Zig 0.15+
 
-### Manual Build
+### Build
 
 ```bash
-# Set target architecture
-export TARGET=x86_64-linux-musl
+# Native build
+zig build
 
-# Set PostgreSQL version (must match a release tag)
-export PG_VERSION=REL_16_1
+# Cross-compile for Linux
+zig build -Dtarget=x86_64-linux-musl -Doptimize=ReleaseSmall
 
-# Run the build
-./build.sh
+# Cross-compile for macOS
+zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSmall
 ```
 
-The resulting binary will be in `build/$TARGET/bin/psql`.
+The resulting binary will be in `zig-out/bin/psql`.
 
 ### Supported Targets
 
+- `x86_64-linux-gnu` - Linux x86_64 (glibc)
 - `x86_64-linux-musl` - Linux x86_64 (fully static)
+- `aarch64-linux-gnu` - Linux ARM64 (glibc)
 - `aarch64-linux-musl` - Linux ARM64 (fully static)
 - `x86_64-macos` - macOS Intel
 - `aarch64-macos` - macOS Apple Silicon
 
 ## Features
 
-- SSL/TLS support (OpenSSL 3.2)
+- SSL/TLS support (OpenSSL 3.3)
 - Compression support (zlib)
 - Readline support (command history and line editing)
 - Fully static binaries on Linux (musl)
-
-## How it Works
-
-1. Downloads and builds static libraries: ncurses, zlib, readline, OpenSSL
-2. Downloads PostgreSQL source from the official repository
-3. Configures a minimal build (only client libraries and psql)
-4. Uses zig cc as the compiler for cross-compilation and static linking
-5. Produces a single static binary with full feature support
-
-## GitHub Actions
-
-This repository uses GitHub Actions to automatically build and release binaries when a tag is pushed.
-
-To create a new release:
-
-```bash
-git tag 16.1.0
-git push origin 16.1.0
-```
 
 ## License
 
