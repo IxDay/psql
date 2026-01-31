@@ -17,7 +17,7 @@ jobs:
         include:
           - { target: x86_64-linux-musl, os: macos-latest }
           - { target: aarch64-linux-musl, os: macos-latest }
-          - { target: x86_64-macos, os: macos-13 }
+          - { target: x86_64-macos, os: macos-15-intel }
           - { target: aarch64-macos, os: macos-latest }
     permissions:
       contents: write
