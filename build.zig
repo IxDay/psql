@@ -196,6 +196,7 @@ fn buildPsql(
         .files = &.{
             "bsearch_arg.c",
             "chklocale.c",
+            "getaddrinfo.c",
             // getpeereid.c - macOS has it built-in
             "inet_net_ntop.c",
             "noblock.c",
@@ -276,7 +277,6 @@ fn buildPsql(
             "link-canary.c",
             "logging.c",
             "md5_common.c",
-            "percentrepl.c",
             "pg_get_line.c",
             "pg_lzcompress.c",
             "pg_prng.c",

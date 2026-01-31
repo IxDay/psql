@@ -181,23 +181,23 @@
 #define TOAST_MAX_CHUNK_SIZE (BLCKSZ / 4)
 
 /* Version info */
-#define PG_MAJORVERSION "16"
-#define PG_MAJORVERSION_NUM 16
-#define PG_MINORVERSION_NUM 1
-#define PG_VERSION "16.1"
-#define PG_VERSION_NUM 160001
-#define PG_VERSION_STR "PostgreSQL 16.1"
+#define PG_MAJORVERSION "15"
+#define PG_MAJORVERSION_NUM 15
+#define PG_MINORVERSION_NUM 10
+#define PG_VERSION "15.10"
+#define PG_VERSION_NUM 151000
+#define PG_VERSION_STR "PostgreSQL 15.10"
 
 /* CATALOG version */
-#define CATALOG_VERSION_NO 202307071
+#define CATALOG_VERSION_NO 202209061
 
 /* Package info */
 #define PACKAGE_BUGREPORT "pgsql-bugs@lists.postgresql.org"
 #define PACKAGE_NAME "PostgreSQL"
-#define PACKAGE_STRING "PostgreSQL 16.1"
+#define PACKAGE_STRING "PostgreSQL 15.10"
 #define PACKAGE_TARNAME "postgresql"
 #define PACKAGE_URL "https://www.postgresql.org/"
-#define PACKAGE_VERSION "16.1"
+#define PACKAGE_VERSION "15.10"
 
 /* Build configuration info */
 #define CONFIGURE_ARGS "'--with-openssl'"

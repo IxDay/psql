@@ -1,6 +1,6 @@
 .{
     .name = .psql,
-    .version = "16.1.0",
+    .version = "15.10.0",
     .fingerprint = 0x6eeccc4d0165a7ed,
     .minimum_zig_version = "0.15.0",
     .dependencies = .{
@@ -19,8 +19,8 @@
             .path = "openssl",
         },
         .postgresql = .{
-            .url = "https://ftp.postgresql.org/pub/source/v16.1/postgresql-16.1.tar.gz",
-            .hash = "N-V-__8AADZecgmQdaWpFzo2Cy1vaWniEHBo5Nc638G7V94D",
+            .url = "https://ftp.postgresql.org/pub/source/v15.10/postgresql-15.10.tar.gz",
+            .hash = "N-V-__8AAJkl2giuBYofbFm19cvBHrfzU41xuHvPYAHhm08C",
         },
     },
     .paths = .{
