@@ -1,13 +1,17 @@
 const std = @import("std");
 
+const Linkage = enum { static, dynamic };
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const linkage = b.option(Linkage, "linkage", "Linkage mode (static or dynamic)") orelse .static;
 
     const mod = b.createModule(.{
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        .pic = if (linkage == .dynamic) true else null,
     });
 
     // Add our pre-generated config headers

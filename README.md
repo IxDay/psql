@@ -31,20 +31,13 @@ Or add to your project's `.mise.toml`:
 "github:IxDay/psql" = "16.1.0"
 ```
 
-## Manual Download
+## Download
 
-Check the [Releases](../../releases) page for pre-built binaries:
-
-- Linux x86_64 (glibc)
-- Linux x86_64 (musl, fully static)
-- Linux aarch64 (glibc)
-- Linux aarch64 (musl, fully static)
-- macOS x86_64
-- macOS aarch64
+Check the [Releases](../../releases) page for pre-built binaries.
 
 ## Building from Source
 
-The build uses [Zig](https://ziglang.org/) as a cross-compiler to produce static binaries.
+The build uses [Zig](https://ziglang.org/) as a cross-compiler.
 
 ### Requirements
 
@@ -56,30 +49,37 @@ The build uses [Zig](https://ziglang.org/) as a cross-compiler to produce static
 # Native build
 zig build
 
-# Cross-compile for Linux
-zig build -Dtarget=x86_64-linux-musl -Doptimize=ReleaseSmall
+# Cross-compile for Linux (fully static)
+zig build -Dtarget=x86_64-linux-musl -Dlinkage=static -Doptimize=ReleaseSmall
+
+# Cross-compile for Linux (dynamic musl, for Alpine/musl systems)
+zig build -Dtarget=x86_64-linux-musl -Dlinkage=dynamic -Doptimize=ReleaseSmall
 
 # Cross-compile for macOS
 zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSmall
 ```
 
-The resulting binary will be in `zig-out/bin/psql`.
-
 ### Supported Targets
 
-- `x86_64-linux-gnu` - Linux x86_64 (glibc)
-- `x86_64-linux-musl` - Linux x86_64 (fully static)
-- `aarch64-linux-gnu` - Linux ARM64 (glibc)
-- `aarch64-linux-musl` - Linux ARM64 (fully static)
-- `x86_64-macos` - macOS Intel
-- `aarch64-macos` - macOS Apple Silicon
+| Target | Linkage | Binary | Description |
+|--------|---------|--------|-------------|
+| `x86_64-linux-musl` | `static` | `psql-x86_64-linux-static` | Fully static, no dependencies |
+| `x86_64-linux-musl` | `dynamic` | `psql-x86_64-linux-musl` | Dynamic musl (for Alpine, etc.) |
+| `aarch64-linux-musl` | `static` | `psql-aarch64-linux-static` | Fully static, no dependencies |
+| `aarch64-linux-musl` | `dynamic` | `psql-aarch64-linux-musl` | Dynamic musl (for Alpine, etc.) |
+| `x86_64-linux-gnu` | - | `psql-x86_64-linux-gnu` | Links against glibc |
+| `aarch64-linux-gnu` | - | `psql-aarch64-linux-gnu` | Links against glibc |
+| `x86_64-macos` | - | `psql-x86_64-macos` | macOS Intel |
+| `aarch64-macos` | - | `psql-aarch64-macos` | macOS Apple Silicon |
 
 ## Features
 
 - SSL/TLS support (OpenSSL 3.3)
 - Compression support (zlib)
 - Readline support (command history and line editing)
-- Fully static binaries on Linux (musl)
+- Two Linux musl variants:
+  - **Static**: Fully self-contained, runs anywhere without dependencies
+  - **Dynamic**: Links against system musl libc, smaller binary for Alpine/musl-based systems
 
 ## License
 

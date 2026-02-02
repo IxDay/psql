@@ -9,21 +9,24 @@ permissions: read-all
 
 jobs:
   build:
-    name: "${{ matrix.target }}"
+    name: "${{ matrix.name }}"
     strategy:
-      max-parallel: 6
+      max-parallel: 8
       fail-fast: false
       matrix:
         include:
-          # Linux musl (fully static)
-          - { target: x86_64-linux-musl, os: ubuntu-latest }
-          - { target: aarch64-linux-musl, os: ubuntu-latest }
+          # Linux musl - static (fully static, no dependencies)
+          - { name: x86_64-linux-static, target: x86_64-linux-musl, linkage: static, os: ubuntu-latest }
+          - { name: aarch64-linux-static, target: aarch64-linux-musl, linkage: static, os: ubuntu-latest }
+          # Linux musl - dynamic (links against musl libc)
+          - { name: x86_64-linux-musl, target: x86_64-linux-musl, linkage: dynamic, os: ubuntu-latest }
+          - { name: aarch64-linux-musl, target: aarch64-linux-musl, linkage: dynamic, os: ubuntu-latest }
           # Linux glibc
-          - { target: x86_64-linux-gnu, os: ubuntu-latest }
-          - { target: aarch64-linux-gnu, os: ubuntu-latest }
+          - { name: x86_64-linux-gnu, target: x86_64-linux-gnu, os: ubuntu-latest }
+          - { name: aarch64-linux-gnu, target: aarch64-linux-gnu, os: ubuntu-latest }
           # macOS
-          - { target: x86_64-macos, os: macos-15-intel }
-          - { target: aarch64-macos, os: macos-latest }
+          - { name: x86_64-macos, target: x86_64-macos, os: macos-15-intel }
+          - { name: aarch64-macos, target: aarch64-macos, os: macos-latest }
     permissions:
       contents: write
     runs-on: "${{ matrix.os }}"
@@ -36,21 +39,32 @@ jobs:
           version: 0.15.2
 
       - name: Build psql
-        run: zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSmall
+        run: |
+          if [ -n "${{ matrix.linkage }}" ]; then
+            zig build -Dtarget=${{ matrix.target }} -Dlinkage=${{ matrix.linkage }} -Doptimize=ReleaseSmall
+          else
+            zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSmall
+          fi
 
       - name: Create archive
         run: |
           cd zig-out/bin
-          tar -czvf ../../psql-${{ matrix.target }}.tar.gz psql
+          # Determine the binary name based on linkage
+          if [ "${{ matrix.linkage }}" = "static" ]; then
+            mv psql-static psql
+          elif [ "${{ matrix.linkage }}" = "dynamic" ]; then
+            mv psql-musl psql
+          fi
+          tar -czvf ../../psql-${{ matrix.name }}.tar.gz psql
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: psql-${{ matrix.target }}
-          path: psql-${{ matrix.target }}.tar.gz
+          name: psql-${{ matrix.name }}
+          path: psql-${{ matrix.name }}.tar.gz
 
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ contains(github.ref_name, '-rc') }}
-          files: psql-${{ matrix.target }}.tar.gz
+          files: psql-${{ matrix.name }}.tar.gz

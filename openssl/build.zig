@@ -1,8 +1,11 @@
 const std = @import("std");
 
+const Linkage = enum { static, dynamic };
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const linkage = b.option(Linkage, "linkage", "Linkage mode (static or dynamic)") orelse .static;
 
     const upstream = b.dependency("openssl", .{});
 
@@ -10,6 +13,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        .pic = if (linkage == .dynamic) true else null,
     });
     const lib = b.addLibrary(.{ .name = "openssl", .root_module = mod });
 

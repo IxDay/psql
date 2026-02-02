@@ -1,17 +1,30 @@
 const std = @import("std");
 
+const Linkage = enum { static, dynamic };
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const is_musl = target.result.abi == .musl;
+
+    // Linkage option: only relevant for musl targets
+    const linkage = b.option(Linkage, "linkage", "Linkage mode for musl targets (static or dynamic)") orelse .static;
+
+    // Determine executable name suffix based on target and linkage
+    const exe_name = if (is_musl)
+        if (linkage == .static) "psql-static" else "psql-musl"
+    else
+        "psql";
+
     // Build dependencies
-    const z = buildZlib(b, target, optimize);
-    const ncurses = buildNcurses(b, target, optimize);
-    const readline = buildReadline(b, target, optimize, ncurses);
-    const openssl = buildOpenssl(b, target, optimize);
+    const z = buildZlib(b, target, optimize, linkage);
+    const ncurses = buildNcurses(b, target, optimize, linkage);
+    const readline = buildReadline(b, target, optimize, ncurses, linkage);
+    const openssl = buildOpenssl(b, target, optimize, linkage);
 
     // Build psql
-    const psql = buildPsql(b, target, optimize, z, ncurses, readline, openssl);
+    const psql = buildPsql(b, target, optimize, z, ncurses, readline, openssl, exe_name, linkage);
     b.installArtifact(psql);
 
     // Optionally install dependency libraries
@@ -28,6 +41,7 @@ fn buildZlib(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
+    linkage: Linkage,
 ) *std.Build.Step.Compile {
     const z_dep = b.dependency("z", .{});
 
@@ -35,6 +49,7 @@ fn buildZlib(
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        .pic = if (linkage == .dynamic) true else null,
     });
 
     z_mod.addCSourceFiles(.{
@@ -68,10 +83,12 @@ fn buildNcurses(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
+    linkage: Linkage,
 ) *std.Build.Step.Compile {
     const ncurses_dep = b.dependency("ncurses", .{
         .target = target,
         .optimize = optimize,
+        .linkage = linkage,
     });
 
     // The ncurses package exports a single "ncurses" artifact
@@ -83,7 +100,10 @@ fn buildReadline(
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
     ncurses: *std.Build.Step.Compile,
+    linkage: Linkage,
 ) *std.Build.Step.Compile {
+    _ = linkage; // readline package doesn't support linkage option
+
     // The readline package has proper Zig 0.15 API
     const readline_dep = b.dependency("readline", .{
         .target = target,
@@ -107,10 +127,12 @@ fn buildOpenssl(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
     optimize: std.builtin.OptimizeMode,
+    linkage: Linkage,
 ) *std.Build.Step.Compile {
     const openssl_dep = b.dependency("openssl", .{
         .target = target,
         .optimize = optimize,
+        .linkage = linkage,
     });
 
     // The openssl package exports a single "openssl" artifact
@@ -125,6 +147,8 @@ fn buildPsql(
     ncurses: *std.Build.Step.Compile,
     readline: *std.Build.Step.Compile,
     openssl: *std.Build.Step.Compile,
+    exe_name: []const u8,
+    linkage: Linkage,
 ) *std.Build.Step.Compile {
     const pg_dep = b.dependency("postgresql", .{});
 
@@ -132,6 +156,7 @@ fn buildPsql(
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        .pic = if (linkage == .dynamic) true else null,
     });
 
     // Add our config headers
@@ -346,8 +371,9 @@ fn buildPsql(
     });
 
     const psql = b.addExecutable(.{
-        .name = "psql",
+        .name = exe_name,
         .root_module = psql_mod,
+        .linkage = if (linkage == .dynamic) .dynamic else null,
     });
 
     return psql;
