@@ -6,7 +6,11 @@
 /* Alignment requirements */
 #define ALIGNOF_DOUBLE 8
 #define ALIGNOF_INT 4
+#if __SIZEOF_POINTER__ == 8
 #define ALIGNOF_LONG 8
+#else
+#define ALIGNOF_LONG 4
+#endif
 #define ALIGNOF_LONG_LONG_INT 8
 #define ALIGNOF_SHORT 2
 
@@ -149,15 +153,26 @@
 #define HAVE_LIBZ 1
 
 /* Integer types - let c.h define them via HAVE_LONG_INT_64 */
+#if __SIZEOF_POINTER__ == 8
 #define HAVE_LONG_INT_64 1
 #define PG_INT64_TYPE long int
+#else
+#define HAVE_LONG_LONG_INT_64 1
+#define PG_INT64_TYPE long long int
+#endif
 
 /* Size types */
 #define SIZEOF_BOOL 1
+#if __SIZEOF_POINTER__ == 8
 #define SIZEOF_LONG 8
-#define SIZEOF_OFF_T 8
 #define SIZEOF_SIZE_T 8
 #define SIZEOF_VOID_P 8
+#else
+#define SIZEOF_LONG 4
+#define SIZEOF_SIZE_T 4
+#define SIZEOF_VOID_P 4
+#endif
+#define SIZEOF_OFF_T 8
 
 /* Alignment */
 #define MAXIMUM_ALIGNOF 8

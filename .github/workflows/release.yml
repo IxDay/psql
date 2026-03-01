@@ -24,6 +24,14 @@ jobs:
           # Linux glibc
           - { name: x86_64-linux-gnu, target: x86_64-linux-gnu, os: ubuntu-latest }
           - { name: aarch64-linux-gnu, target: aarch64-linux-gnu, os: ubuntu-latest }
+          # ARM hard-float (armhf/EABI5)
+          - { name: arm-linux-static, target: arm-linux-musleabihf, linkage: static, os: ubuntu-latest }
+          - { name: arm-linux-musl, target: arm-linux-musleabihf, linkage: dynamic, os: ubuntu-latest }
+          - { name: arm-linux-gnu, target: arm-linux-gnueabihf, os: ubuntu-latest }
+          # x86 32-bit (i386)
+          - { name: x86-linux-static, target: x86-linux-musl, linkage: static, os: ubuntu-latest }
+          - { name: x86-linux-musl, target: x86-linux-musl, linkage: dynamic, os: ubuntu-latest }
+          - { name: x86-linux-gnu, target: x86-linux-gnu, os: ubuntu-latest }
           # macOS
           - { name: x86_64-macos, target: x86_64-macos, os: macos-15-intel }
           - { name: aarch64-macos, target: aarch64-macos, os: macos-latest }

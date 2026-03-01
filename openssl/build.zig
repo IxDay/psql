@@ -29,13 +29,14 @@ pub fn build(b: *std.Build) void {
     const is_x86_64 = target.result.cpu.arch == .x86_64;
     const is_darwin = target.result.os.tag.isDarwin();
     const is_linux = target.result.os.tag == .linux;
+    const is_64bit = target.result.ptrBitWidth() == 64;
 
     const endian_flag: []const u8 = if (target.result.cpu.arch.endian() == .little)
         "-DL_ENDIAN"
     else
         "-DB_ENDIAN";
 
-    // Base flags for all platforms (non-x86_64, non-Darwin)
+    // Base flags for all platforms
     const common_base_flags = [_][]const u8{
         "-DENGINESDIR=\"/dev/null\"",
         "-DMODULESDIR=\"/dev/null\"",
@@ -112,6 +113,20 @@ pub fn build(b: *std.Build) void {
         .flags = base_flags,
     });
 
+    // EC NIST-P optimized implementations require 128-bit integer types (64-bit only)
+    if (is_64bit) {
+        mod.addCSourceFiles(.{
+            .root = upstream.path("crypto"),
+            .files = &.{
+                "ec/ecp_nistp224.c",
+                "ec/ecp_nistp256.c",
+                "ec/ecp_nistp384.c",
+                "ec/ecp_nistp521.c",
+            },
+            .flags = base_flags,
+        });
+    }
+
     // x86_64 Linux: use assembly files (pre-generated in upstream)
     // x86_64 macOS: use C fallback (assembly files not available in fork)
     // ARM64: use C fallback
@@ -163,6 +178,15 @@ pub fn build(b: *std.Build) void {
         },
         .flags = base_flags,
     });
+
+    // 32-bit x86: provide __atomic_is_lock_free (Zig's compiler-rt lacks it)
+    if (target.result.cpu.arch == .x86) {
+        mod.addCSourceFiles(.{
+            .root = b.path("crypto"),
+            .files = &.{"atomic_compat.c"},
+            .flags = &.{},
+        });
+    }
 
     // Include paths
     mod.addIncludePath(upstream.path("."));
@@ -829,10 +853,7 @@ const crypto_common_files = [_][]const u8{
     "ec/eck_prn.c",
     "ec/ecp_mont.c",
     "ec/ecp_nist.c",
-    "ec/ecp_nistp224.c",
-    "ec/ecp_nistp256.c",
-    "ec/ecp_nistp384.c",
-    "ec/ecp_nistp521.c",
+    // ecp_nistp{224,256,384,521}.c require 128-bit integers (added conditionally above)
     "ec/ecp_nistputil.c",
     "ec/ecp_nistz256.c",
     "ec/ecp_oct.c",

@@ -69,6 +69,12 @@ zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSmall
 | `aarch64-linux-musl` | `dynamic` | `psql-aarch64-linux-musl` | Dynamic musl (for Alpine, etc.) |
 | `x86_64-linux-gnu` | - | `psql-x86_64-linux-gnu` | Links against glibc |
 | `aarch64-linux-gnu` | - | `psql-aarch64-linux-gnu` | Links against glibc |
+| `arm-linux-musleabihf` | `static` | `psql-arm-linux-static` | Fully static, no dependencies |
+| `arm-linux-musleabihf` | `dynamic` | `psql-arm-linux-musl` | Dynamic musl (for Alpine, etc.) |
+| `arm-linux-gnueabihf` | - | `psql-arm-linux-gnu` | Links against glibc |
+| `x86-linux-musl` | `static` | `psql-x86-linux-static` | Fully static, no dependencies |
+| `x86-linux-musl` | `dynamic` | `psql-x86-linux-musl` | Dynamic musl (for Alpine, etc.) |
+| `x86-linux-gnu` | - | `psql-x86-linux-gnu` | Links against glibc |
 | `x86_64-macos` | - | `psql-x86_64-macos` | macOS Intel |
 | `aarch64-macos` | - | `psql-aarch64-macos` | macOS Apple Silicon |
 

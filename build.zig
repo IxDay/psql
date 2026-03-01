@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const is_musl = target.result.abi == .musl;
+    const is_musl = target.result.abi.isMusl();
 
     // Linkage option: only relevant for musl targets
     const linkage = b.option(Linkage, "linkage", "Linkage mode for musl targets (static or dynamic)") orelse .static;
@@ -180,10 +180,17 @@ fn buildPsql(
     psql_mod.linkLibrary(openssl);
 
     // Detect target characteristics
-    const is_musl = target.result.abi == .musl;
+    const is_musl = target.result.abi.isMusl();
     const is_darwin = target.result.os.tag.isDarwin();
+    const is_32bit = target.result.ptrBitWidth() == 32;
 
-    const common_flags: []const []const u8 = &.{
+    const common_flags: []const []const u8 = if (is_32bit) &.{
+        "-D_GNU_SOURCE",
+        "-DFRONTEND",
+        "-DHAVE_CONFIG_H",
+        "-DUSE_OPENSSL",
+        "-D_FILE_OFFSET_BITS=64",
+    } else &.{
         "-D_GNU_SOURCE",
         "-DFRONTEND",
         "-DHAVE_CONFIG_H",
