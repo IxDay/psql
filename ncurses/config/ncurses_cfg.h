@@ -55,7 +55,16 @@
 #define NCURSES_PATCHDATE 20230311
 #define SYSTEM_NAME "linux-gnu"
 #define HAVE_LONG_FILE_NAMES 1
+/*
+ * macOS terminfo uses hex-named directories (e.g. 78/xterm-256color),
+ * while Linux uses character-named directories (e.g. x/xterm-256color).
+ * This controls LEAF_FMT in curses.priv.h which builds the lookup path.
+ */
+#ifdef __APPLE__
+#define MIXEDCASE_FILENAMES 0
+#else
 #define MIXEDCASE_FILENAMES 1
+#endif
 #define STDC_HEADERS 1
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_SYS_STAT_H 1
